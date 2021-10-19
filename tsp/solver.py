@@ -81,13 +81,15 @@ def solve_it(input_data):
             best_path = deepcopy(path)
         print(f'start weight {start_weight }')
 
-        path, weight = complex_tabu_search(path, points, matrix, num_iterations = 500)
-               
-        # path = clear_path(path + [path[0]], points)[0][:-1]
-        # fig = plt.figure(figsize = (20, 20))
-        # plt.plot(list(map(lambda x: points[x].x, path + [path[0]])), list(map(lambda x: points[x].y, path + [path[0]])), '-o')
-        # plt.savefig(f'graph_{i}.png')
-        # plt.clf()
+        path, weight = complex_tabu_search(path, points, matrix, num_iterations = 50)
+        path, weight = complex_tabu_search(path, points, matrix, num_iterations = 50)
+        path, weight = complex_tabu_search(path, points, matrix, num_iterations = 50)  
+        
+        path = clear_path(path + [path[0]], points)[0][:-1]
+        fig = plt.figure(figsize = (20, 20))
+        plt.plot(list(map(lambda x: points[x].x, path + [path[0]])), list(map(lambda x: points[x].y, path + [path[0]])), '-o')
+        plt.savefig(f'graph_{i}.png')
+        plt.clf()
         print(f'end weight {weight}') 
         weight = weight_of_path(path + [path[0]], matrix)
         if weight < best_weight:
@@ -95,15 +97,15 @@ def solve_it(input_data):
             best_path = deepcopy(path)
             
     
-    path = create_initial_path(matrix, sorted_matrix, 0)
+    path = best_path # create_initial_path(matrix, sorted_matrix, 0)
     start_weight = weight_of_path(path + [path[0]], matrix)
     if start_weight < best_weight:
         best_weight = start_weight
         best_path = deepcopy(path)
     print(f'start weight {start_weight }')
 
-    path, weight = complex_tabu_search(path, points, matrix, num_iterations = 5)
-    # path = clear_path(path + [path[0]], points)[0][:-1]
+    path, weight = complex_tabu_search(path, points, matrix, num_iterations = 200)
+    path = clear_path(path + [path[0]], points)[0][:-1]
     weight = weight_of_path(path + [path[0]], matrix)
     # fig = plt.figure(figsize = (20, 20))
     # plt.plot(list(map(lambda x: points[x].x, path + [path[0]])), list(map(lambda x: points[x].y, path + [path[0]])), '-o')

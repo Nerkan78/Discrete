@@ -65,7 +65,7 @@ def clear_path(initial_path, dict_points, num_iterations=100, history = []):
 def length(point1, point2):
     return math.sqrt((point1.x - point2.x)**2 + (point1.y - point2.y)**2)    
 
-def K_opt(initial_path, old_weight, adjacency_matrix, points_iterated=None, mode='improve', epsilon_edge = 0.02, epsilon_continue = 0.1, history=[]):
+def K_opt(initial_path, old_weight, adjacency_matrix, points_iterated=None, mode='improve', epsilon_edge = 0.03, epsilon_continue = 0.15, history=[]):
     if mode == 'improve':
         epsilon_edge = -1
         epsilon_continue = -1
@@ -78,7 +78,14 @@ def K_opt(initial_path, old_weight, adjacency_matrix, points_iterated=None, mode
     # iterations over points
     if points_iterated is None:
         points_iterated = range(len(initial_path))
-    for initial_point in points_iterated:
+        # shuffle(points_iterated)
+    has_changed = False
+    edges = sorted(extract_edges(path + [path[0]]), key = lambda edge : adjacency_matrix[edge[0]][edge[1]], reverse=True)
+    edge_index = 0
+    # for initial_point in points_iterated:
+    while not has_changed:
+        initial_point = randint(0, len(initial_path)-1)
+        # initial_point, next_point = edges[edge_index]
         # print(f'initial point is {initial_point}')
         
         # iterations through k opts
@@ -144,7 +151,7 @@ def K_opt(initial_path, old_weight, adjacency_matrix, points_iterated=None, mode
     
 
 
-def complex_tabu_search(initial_path, points, adjacency_matrix, num_iterations = 100, epsilon_change_path = 1e-3):
+def complex_tabu_search(initial_path, points, adjacency_matrix, num_iterations = 100, num_neighbors = 15, epsilon_change_path = 1e+1):
     path = deepcopy(initial_path)
     tabu = []
     L = 40
@@ -152,29 +159,32 @@ def complex_tabu_search(initial_path, points, adjacency_matrix, num_iterations =
     best_path = deepcopy(path)
     best_paths = []
     old_weight = weight_of_path(path + [path[0]], adjacency_matrix)
+    temperature = 0
     
     for epoch in range(num_iterations):
         old_best_weight = best_weight
        
         # path = deepcopy(best_path)
-        mode = 'improve'
+        mode = 'explore'
         global_points_iterated = list(range(len(initial_path)))
         shuffle(global_points_iterated)
-        for initial_point in global_points_iterated[:len(global_points_iterated)]:
-            points_iterated = list(range(len(initial_path)))
-            shuffle(points_iterated)
-            # points_iterated = [initial_point]
-            new_path, new_weight, considered_points, has_changed = K_opt(path, old_weight,  adjacency_matrix, points_iterated, mode)
+        best_neighbor_weight = np.inf
+        for n in range(num_neighbors):
+            # for initial_point in global_points_iterated[:len(global_points_iterated)]:
+                # points_iterated = list(range(len(initial_path)))
+                # shuffle(points_iterated)
+                # points_iterated = [initial_point]
+            new_path, new_weight, considered_points, has_changed = K_opt(path, old_weight,  adjacency_matrix, None, mode)
             # new_path = Two_OPT(path, points)
             if not has_changed:
                 continue
-            print('has changed')
+            # print('has changed')
             seen = False
             for tabu_hash in tabu:
                 seen_points, weight = tabu_hash    
-                if seen_points == considered_points and weight == new_weight:
+                if round(weight, 2) == round(new_weight, 2):
                     seen = True
-                    print('tabu')
+                    # print('tabu')
                     break
             if not seen:
                 
@@ -183,18 +193,35 @@ def complex_tabu_search(initial_path, points, adjacency_matrix, num_iterations =
                     # print(f'new weight is {new_weight}')
                     # print(f'old weight is {old_weight}')
                     # print(f'possibility is {np.exp( - epsilon_change_path * (new_weight - old_weight) *  (epoch + 1))}')
-                if round(new_weight, 2) < round(old_weight, 2) or random() < np.exp( - epsilon_change_path * (new_weight - old_weight) *  (epoch + 1)):
-                    path = deepcopy(new_path)
-                    old_weight = new_weight
+                if round(new_weight, 2) < round(best_neighbor_weight, 2) :
+                    best_neighbor_path = deepcopy(new_path)
+                    best_neighbor_weight = new_weight
+                    best_considered_points = deepcopy(considered_points)
                     # print(f'change path, current weight {new_weight}')
-                    tabu.append((considered_points, new_weight))
-                    if len(tabu) > L:
-                        tabu.pop(0)
+                    
                 if round(new_weight, 2) < round(best_weight, 2):
                     best_weight = new_weight
                     best_path = deepcopy(new_path)
-                    best_paths.append((deepcopy(new_path), new_weight))
-        print(f'tabu iteration is {epoch} old weight is {old_best_weight} new weight is {best_weight}')
+        # print(f'new_weight is {new_weight} old_weight is {old_weight} possibility is {np.exp( - epsilon_change_path * (new_weight - old_weight + 3) * 2 /  old_weight /   (temperature + 1))}')        
+        if round(old_weight, 2) < round(best_neighbor_weight, 2):
+            path = deepcopy(best_neighbor_path)
+            old_weight = best_neighbor_weight
+            tabu.append((best_considered_points, best_neighbor_weight))
+            if len(tabu) > L:
+                tabu.pop(0)
+            temperature = 0
+        elif random() < np.exp( - epsilon_change_path * (new_weight - old_weight + 3) *2 / old_weight/  (temperature + 1)):
+            path = deepcopy(best_neighbor_path)
+            old_weight = best_neighbor_weight
+            tabu.append((best_considered_points, best_neighbor_weight))
+            if len(tabu) > L:
+                tabu.pop(0)
+            temperature = 0
+            
+        else:
+            temperature += 1
+            
+        print(f'tabu iteration is {epoch} old weight is {old_best_weight} new weight is {best_weight} temperature is {temperature}')
         
                 
     return best_path, best_weight
