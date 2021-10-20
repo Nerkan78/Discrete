@@ -80,7 +80,7 @@ def K_opt(initial_path, old_weight, adjacency_matrix, points_iterated=None, mode
         points_iterated = range(len(initial_path))
         # shuffle(points_iterated)
     has_changed = False
-    edges = sorted(extract_edges(path + [path[0]]), key = lambda edge : adjacency_matrix[edge[0]][edge[1]], reverse=True)
+    # edges = sorted(extract_edges(path + [path[0]]), key = lambda edge : adjacency_matrix[edge[0]][edge[1]], reverse=True)
     edge_index = 0
     # for initial_point in points_iterated:
     while not has_changed:
@@ -140,6 +140,7 @@ def K_opt(initial_path, old_weight, adjacency_matrix, points_iterated=None, mode
         # if k > 1:
             # print(point , k)
         path = deepcopy(old_path)
+        edge_index += 1
         # if old_path != path:
             # path = deepcopy(old_path)
             # history.append(deepcopy(path + [path[0]]))
@@ -221,7 +222,7 @@ def complex_tabu_search(initial_path, points, adjacency_matrix, num_iterations =
         else:
             temperature += 1
             
-        print(f'tabu iteration is {epoch} old weight is {old_best_weight} new weight is {best_weight} temperature is {temperature}')
+        # print(f'tabu iteration is {epoch} old weight is {old_best_weight} new weight is {best_weight} temperature is {temperature}')
         
                 
     return best_path, best_weight

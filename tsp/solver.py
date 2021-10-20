@@ -81,15 +81,15 @@ def solve_it(input_data):
             best_path = deepcopy(path)
         print(f'start weight {start_weight }')
 
-        path, weight = complex_tabu_search(path, points, matrix, num_iterations = 50)
-        path, weight = complex_tabu_search(path, points, matrix, num_iterations = 50)
-        path, weight = complex_tabu_search(path, points, matrix, num_iterations = 50)  
+        path, weight = complex_tabu_search(path, points, matrix, num_iterations = 150)
+        path, weight = complex_tabu_search(path, points, matrix, num_iterations = 150)
+        path, weight = complex_tabu_search(path, points, matrix, num_iterations = 150)  
         
-        path = clear_path(path + [path[0]], points)[0][:-1]
-        fig = plt.figure(figsize = (20, 20))
-        plt.plot(list(map(lambda x: points[x].x, path + [path[0]])), list(map(lambda x: points[x].y, path + [path[0]])), '-o')
-        plt.savefig(f'graph_{i}.png')
-        plt.clf()
+        # path = clear_path(path + [path[0]], points)[0][:-1]
+        # fig = plt.figure(figsize = (20, 20))
+        # plt.plot(list(map(lambda x: points[x].x, path + [path[0]])), list(map(lambda x: points[x].y, path + [path[0]])), '-o')
+        # plt.savefig(f'graph_{i}.png')
+        # plt.clf()
         print(f'end weight {weight}') 
         weight = weight_of_path(path + [path[0]], matrix)
         if weight < best_weight:
@@ -103,9 +103,10 @@ def solve_it(input_data):
         best_weight = start_weight
         best_path = deepcopy(path)
     print(f'start weight {start_weight }')
+    
 
-    path, weight = complex_tabu_search(path, points, matrix, num_iterations = 200)
-    path = clear_path(path + [path[0]], points)[0][:-1]
+    path, weight = complex_tabu_search(path, points, matrix, num_iterations = 500)
+    # path = clear_path(path + [path[0]], points)[0][:-1]
     weight = weight_of_path(path + [path[0]], matrix)
     # fig = plt.figure(figsize = (20, 20))
     # plt.plot(list(map(lambda x: points[x].x, path + [path[0]])), list(map(lambda x: points[x].y, path + [path[0]])), '-o')
@@ -144,13 +145,13 @@ def solve_it(input_data):
     # solution = clear_path([31, 20, 25, 21, 43, 50, 39, 49, 17, 32, 48, 22, 33, 0, 5, 2, 28, 10, 9, 45, 26, 47, 1, 6, 36, 12, 30, 37, 42, 29, 38, 15, 14, 44, 16, 11, 40, 18, 19, 7, 13, 35, 23, 4, 8, 34, 24, 46, 3, 41, 27, 31], points)[0]
     solution = clear_path(best_path + [best_path[0]], points)[0][:-1]
     # solution = cristofides_path
-    fig = plt.figure(figsize = (20, 20))
-    plt.plot(list(map(lambda x: points[x].x, solution + [solution[0]])), list(map(lambda x: points[x].y, solution + [solution[0]])), '-o')
+    # fig = plt.figure(figsize = (20, 20))
+    # plt.plot(list(map(lambda x: points[x].x, solution + [solution[0]])), list(map(lambda x: points[x].y, solution + [solution[0]])), '-o')
     
-    plt.yticks(np.arange(min_y, max_y, 5))
-    plt.xticks(np.arange(min_x, max_x, 5))
+    # plt.yticks(np.arange(min_y, max_y, 5))
+    # plt.xticks(np.arange(min_x, max_x, 5))
     
-    plt.savefig('final_graph.png')
+    # plt.savefig('final_graph.png')
     # calculate the length of the tour
     obj = length(points[solution[-1]], points[solution[0]])
     for index in range(0, nodeCount-1):
