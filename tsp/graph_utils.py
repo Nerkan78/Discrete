@@ -348,13 +348,13 @@ def isInTouch(edge1, edge2):
         return True
     return False
 
-def swap_two_edges(edge1,edge2, path, adjacency_matrix, old_weight):
+def swap_two_edges(edge1,edge2, path, augmented_adjacency_matrix, old_augmented_weight, adjacency_matrix, old_weight, swap = True):
     new_path = deepcopy(path)
     (u1, v1), (u2, v2) = (edge1,edge2)   
     
     if len(np.unique([u1, v1, u2, v2])) != 4:
         # print(f'repeated values ({u1}, {v1}) ({u2}, {v2})')
-        return path, old_weight
+        return path, old_weight, old_augmented_weight
     # print(f'non repeated values ({u1}, {v1}) ({u2}, {v2})')                       
     index_u1 = path.index(u1)
     index_v1 = path.index(v1)
@@ -374,11 +374,13 @@ def swap_two_edges(edge1,edge2, path, adjacency_matrix, old_weight):
         index_v2, index_u2 = index_u2, index_v2
     index_u2 += 1
     
-    if index_u2 > index_u1:
-        new_path[index_v1 : index_u2] = new_path[::-1][len(path) - index_u2 : len(path) - index_v1]
-    else:
-        new_path[index_v2 : index_u1] = new_path[::-1][len(path) - index_u1 : len(path) - index_v2]
-    return new_path, old_weight - adjacency_matrix[u1][v1] - adjacency_matrix[u2][v2] + adjacency_matrix[u1][u2] + adjacency_matrix[v1][v2]
+    if swap:
+        if index_u2 > index_u1:
+            new_path[index_v1 : index_u2] = new_path[::-1][len(path) - index_u2 : len(path) - index_v1]
+        else:
+            new_path[index_v2 : index_u1] = new_path[::-1][len(path) - index_u1 : len(path) - index_v2]
+    return new_path, old_weight - adjacency_matrix[u1][v1] - adjacency_matrix[u2][v2] + adjacency_matrix[u1][u2] + adjacency_matrix[v1][v2], \
+                     old_augmented_weight - augmented_adjacency_matrix[u1][v1] - augmented_adjacency_matrix[u2][v2] + augmented_adjacency_matrix[u1][u2] + augmented_adjacency_matrix[v1][v2]
 
 def swap_two_edges_by_index(edge1,edge2, path, adjacency_matrix, old_weight):
     new_path = deepcopy(path)

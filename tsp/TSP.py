@@ -338,10 +338,11 @@ def small_tabu_search(initial_path, points, adjacency_matrix, num_iterations = 1
     return best_path, best_weight
     
     
-def fast_local_search(initial_path, initial_weight, augmented_adjacency_matrix, subneighborhoods_activated):
+def fast_local_search(initial_path, initial_weight, initial_augmented_weight,  adjacency_matrix, augmented_adjacency_matrix, subneighborhoods_activated):
     node_Count = len(initial_path)
     path = deepcopy(initial_path) 
-    old_weight = weight_of_path(initial_path + [initial_path[0]], augmented_adjacency_matrix)
+    old_augmented_weight = initial_augmented_weight
+    old_weight = initial_weight
     while sum(subneighborhoods_activated) > 0:
         # print(sum(subneighborhoods_activated))
         for i in range(node_Count):
@@ -356,21 +357,33 @@ def fast_local_search(initial_path, initial_weight, augmented_adjacency_matrix, 
                 
                 moves = [((i, next_point_i), edge) for edge in edges] + [((prev_point_i, i), edge) for edge in edges]
                 # print(f'weight before {old_weight}' )
+                best_neighbor_weight = np.inf
                 for move in moves:
-                    new_path, new_weight = swap_two_edges(move[0], move[1], path, augmented_adjacency_matrix, old_weight)
-                    assert round(new_weight, 2) == round(weight_of_path(new_path + [new_path[0]], augmented_adjacency_matrix), 2)
-                    if round(new_weight, 2) < round(old_weight, 2):
-                        subneighborhoods_activated[move[0][0]] == 1
-                        subneighborhoods_activated[move[0][1]] == 1
-                        subneighborhoods_activated[move[1][0]] == 1
-                        subneighborhoods_activated[move[1][1]] == 1
-                        path = deepcopy(new_path)
-                        old_weight = new_weight
-                        break
+                    new_path, new_weight, new_augmented_weight = swap_two_edges(move[0], move[1], path, augmented_adjacency_matrix, old_augmented_weight, adjacency_matrix, old_weight, False)
+                    if round(new_augmented_weight, 2) < round(best_neighbor_weight, 2):
+                        # best_neighbor_path = deepcopy(new_path)
+                        best_edges = move
+                        # assert round(another_best_augmented_weight, 2) == round(new_augmented_weight, 2), f'Inside neighborhood new_augmented_weight is {new_augmented_weight} another_best_augmented_weight is {another_best_augmented_weight}'
+                        best_neighbor_weight = new_augmented_weight
+                        best_neighbor_true_weight = new_weight 
+                    
+                # new_path, new_weight = swap_two_edges(move[0], move[1], path, augmented_adjacency_matrix, old_augmented_weight)
+                # assert round(new_weight, 2) == round(best_neighbor_weight, 2), f'in Local Search new_weight {new_weight} best_neighbor_weight {best_neighbor_weight}'
+                if round(best_neighbor_weight, 2) < round(old_augmented_weight, 2):
+                    subneighborhoods_activated[best_edges[0][0]] == 1
+                    subneighborhoods_activated[best_edges[0][1]] == 1
+                    subneighborhoods_activated[best_edges[1][0]] == 1
+                    subneighborhoods_activated[best_edges[1][1]] == 1
+                    path, old_weight, old_augmented_weight = swap_two_edges(best_edges[0], best_edges[1], path, augmented_adjacency_matrix, old_augmented_weight, adjacency_matrix, old_weight, True)
+                    assert round(best_neighbor_weight, 2) == round(old_augmented_weight, 2)
+                    assert round(best_neighbor_true_weight, 2) == round(old_weight, 2)
+                    # path = deepcopy(best_neighbor_path)
+                    # old_augmented_weight = best_neighbor_weight
+                    # old_weight = best_neighbor_true_weight
                 else:
                     subneighborhoods_activated[i] = 0
                 # print(f'weight after {old_weight}' )
-    return path, old_weight
+    return path, old_augmented_weight, old_weight
                 
                     
     
@@ -383,22 +396,24 @@ def guided_local_search(initial_path, points, adjacency_matrix, num_iterations =
     augmented_adjacency_matrix = adjacency_matrix.copy()
     best_path = deepcopy(path)
     old_weight = weight_of_path(path + [path[0]], adjacency_matrix)
+    old_augmented_weight = old_weight
     best_weight = old_weight
-    alpha  = 0.4
-    lambda_ = alpha * old_weight
+    alpha  = 0.1
+    lambda_ = alpha * old_weight / len(initial_path)
     
     for epoch in range(num_iterations):
         # if epoch % 10 == 0:
             # subneighborhoods_activated = [1] * node_Count
         old_best_weight = best_weight    
-        new_path, new_weight = fast_local_search(path, old_weight, augmented_adjacency_matrix, subneighborhoods_activated)
+        changed_path = False 
+        new_path, new_augmented_weight , new_weight = fast_local_search(path, old_weight, old_augmented_weight, adjacency_matrix, augmented_adjacency_matrix, subneighborhoods_activated)
 
         edges = extract_edges(new_path + [new_path[0]])
         max_util_edges = []
         max_util = 0
         for u, v in edges:
             util = adjacency_matrix[u][v] / (1 + penalties[u][v])
-            if round(max_util, 3) >= round(util, 3) >=  round(max_util, 3) - 3:
+            if round(max_util, 3) == round(util, 3):
                 max_util_edges.append((u, v))
             if round(util , 3) > round(max_util, 3):
                 max_util_edges = [(u, v)]
@@ -414,24 +429,27 @@ def guided_local_search(initial_path, points, adjacency_matrix, num_iterations =
         
         
          
-        true_weight = weight_of_path(new_path + [new_path[0]], adjacency_matrix)
-            
-        if round(true_weight, 2) < round(best_weight, 2):
-            best_weight = true_weight
+        # true_weight = weight_of_path(new_path + [new_path[0]], adjacency_matrix)
+        # assert round(true_weight, 2) == round(new_weight, 2)
+        
+        if round(new_weight, 2) < round(best_weight, 2):
+            best_weight = new_weight
             best_path = deepcopy(new_path)
         
-        if round(new_weight, 2) < round(old_weight, 2):
+        if round(new_augmented_weight, 2) < round(old_augmented_weight, 2):
             path = deepcopy(new_path)
+            old_augmented_weight = new_augmented_weight
             old_weight = new_weight
+            changed_path = True
             
         
-        lambda_ = alpha * best_weight
+        # lambda_ = alpha * best_weight
         # print(lambda_)
         augmented_adjacency_matrix = adjacency_matrix + lambda_ * penalties
             
-
-            
-        print(f'GFLS iteration is {epoch} old weight is {old_best_weight} new weight is {best_weight} max penalties is {penalties.max()} number of penalties is {(penalties).sum()}')
+        if epoch % 100 == 0:
+            print(f'GFLS iteration is {epoch} old weight is {old_best_weight} new weight is {best_weight} change path is {changed_path} len subneighborhoods_activated {sum(subneighborhoods_activated)}')    
+        # print(f'GFLS iteration is {epoch} old weight is {old_best_weight} new weight is {best_weight} max penalties is {penalties.max()} number of penalties is {(penalties).sum()}')
         
     # print(penalties.max())            
     return best_path, best_weight

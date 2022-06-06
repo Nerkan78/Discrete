@@ -65,10 +65,9 @@ def solve_it(input_data):
     matrix = (create_adjacency_matrix(points))
     sorted_matrix = np.apply_along_axis(np.argsort, 1, matrix)
     print(sorted_matrix)
-    print([1,2,3] in [[1,2,3], [1,2]])
     
     best_weight = np.inf
-    for i in range(15):
+    for i in range(1):
         print(f'i is {i}')
         # path = create_initial_path(matrix, sorted_matrix, 0)
 
@@ -81,7 +80,7 @@ def solve_it(input_data):
             best_path = deepcopy(path)
         print(f'start weight {start_weight }')
 
-        path, weight = guided_local_search(path, points, matrix, num_iterations = 200)
+        path, weight = guided_local_search(path, points, matrix, num_iterations = 30000)
         true_weight = weight_of_path(path + [path[0]], matrix)
         
         
@@ -98,27 +97,27 @@ def solve_it(input_data):
             best_path = deepcopy(path)
             
     
-    path = best_path # create_initial_path(matrix, sorted_matrix, 0)
-    start_weight = weight_of_path(path + [path[0]], matrix)
-    if start_weight < best_weight:
-        best_weight = start_weight
-        best_path = deepcopy(path)
-    print(f'start final')
-    print(f'start weight {start_weight }')
+    # path = best_path # create_initial_path(matrix, sorted_matrix, 0)
+    # start_weight = weight_of_path(path + [path[0]], matrix)
+    # if start_weight < best_weight:
+        # best_weight = start_weight
+        # best_path = deepcopy(path)
+    # print(f'start final')
+    # print(f'start weight {start_weight }')
 
     # path, weight = complex_tabu_search(path, points, matrix, num_iterations = 300)
     # path = clear_path(path + [path[0]], points)[0][:-1]
-    weight = weight_of_path(path + [path[0]], matrix)
+    # weight = weight_of_path(path + [path[0]], matrix)
     # fig = plt.figure(figsize = (20, 20))
     # plt.plot(list(map(lambda x: points[x].x, path + [path[0]])), list(map(lambda x: points[x].y, path + [path[0]])), '-o')
     # plt.yticks(np.arange(min_y, max_y, 5))
     # plt.xticks(np.arange(min_x, max_x, 5))
     # plt.savefig(f'graph_neighbors.png')
     # plt.clf()
-    print(f'end weight {weight}') 
-    if weight < best_weight:
-        best_weight = weight
-        best_path = deepcopy(path)
+    # print(f'end weight {weight}') 
+    # if weight < best_weight:
+        # best_weight = weight
+        # best_path = deepcopy(path)
         
         
         
@@ -145,6 +144,7 @@ def solve_it(input_data):
     solution = range(0, nodeCount)
     # solution = clear_path([31, 20, 25, 21, 43, 50, 39, 49, 17, 32, 48, 22, 33, 0, 5, 2, 28, 10, 9, 45, 26, 47, 1, 6, 36, 12, 30, 37, 42, 29, 38, 15, 14, 44, 16, 11, 40, 18, 19, 7, 13, 35, 23, 4, 8, 34, 24, 46, 3, 41, 27, 31], points)[0]
     # solution = clear_path(best_path + [best_path[0]], points, matrix)[0][:-1]
+    # solution = [0, 5, 2, 28, 10, 9, 45, 3, 27, 41, 24, 46, 8, 4, 34, 23, 35, 13, 7, 19, 40, 18, 16, 44, 14, 15, 38, 50, 39, 49, 17 ,32, 48, 22, 31, 1, 25, 20, 37, 21, 43, 29, 42, 11, 30, 12, 36, 6 ,26 ,47, 33]
     solution = best_path
     # solution = cristofides_path
     # fig = plt.figure(figsize = (20, 20))
